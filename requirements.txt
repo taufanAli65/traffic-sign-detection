@@ -1,3 +1,4 @@
 Flask
 tensorflow
 Pillow
+firebase_admin
