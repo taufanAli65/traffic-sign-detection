@@ -3,16 +3,9 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 import numpy as np
-import firebase_admin
-from firebase_admin import credentials, firestore
 import random
 
 app = Flask(__name__)
-
-# Inisialisasi Firebase Admin (Firestore)
-cred = credentials.Certificate("./firebaseServiceAccountKey")  # Ganti path sesuai file firebaseServiceAccountKey.json kamu
-firebase_admin.initialize_app(cred)
-db = firestore.client()
 
 # Load model
 model = load_model("model/traffic-sign-model.h5")
@@ -29,15 +22,6 @@ def preprocess_image(image):
     image = np.expand_dims(image, axis=0)
     return image
 
-def get_random_fact(label):
-    doc_ref = db.collection('facts').document(label)
-    doc = doc_ref.get()
-    if doc.exists:
-        facts_dict = doc.to_dict()
-        if facts_dict:
-            return random.choice(list(facts_dict.values()))
-    return "Tidak ada fakta ditemukan."
-
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'image' not in request.files:
@@ -52,13 +36,13 @@ def predict():
     class_label = labels[class_index]
     confidence = float(np.max(prediction))
 
-    fact = get_random_fact(class_label)
-
     return jsonify({
         'prediction': class_label,
         'confidence': confidence,
-        'fact': fact
     })
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True) $for development
+
+
+app = app #for vercel deployment purposes
