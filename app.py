@@ -10,8 +10,7 @@ import random
 app = Flask(__name__)
 
 # Inisialisasi Firebase Admin (Firestore)
-firebase_cred = os.environ.get("FIREBASE_CREDENTIAL") # For deployment purposes
-cred = credentials.Certificate(firebase_cred)  # Ganti path sesuai file firebaseServiceAccountKey.json kamu
+cred = credentials.Certificate("./firebaseServiceAccountKey")  # Ganti path sesuai file firebaseServiceAccountKey.json kamu
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
