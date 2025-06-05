@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Traffic Sign Detection</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; padding: 40px; }
+    .container { background: #fff; padding: 24px; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 2px 8px #ccc; }
+    h2 { text-align: center; }
+    input[type="file"] { margin-bottom: 16px; }
+    button { padding: 8px 16px; border: none; background: #007bff; color: #fff; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #aaa; }
+    #result { margin-top: 24px; text-align: center; }
+    #preview { display: block; margin: 16px auto; max-width: 100%; max-height: 200px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Traffic Sign Detection</h2>
+    <input type="file" id="imageInput" accept="image/*"><br>
+    <img id="preview" src="#" alt="Image Preview" style="display:none;">
+    <button id="predictBtn" disabled>Predict</button>
+    <div id="result"></div>
+  </div>
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const predictBtn = document.getElementById('predictBtn');
+    const resultDiv = document.getElementById('result');
+    const preview = document.getElementById('preview');
+
+    imageInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        predictBtn.disabled = false;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        }
+        reader.readAsDataURL(this.files[0]);
+      } else {
+        predictBtn.disabled = true;
+        preview.style.display = 'none';
+      }
+      resultDiv.innerHTML = '';
+    });
+
+    predictBtn.addEventListener('click', function() {
+      const file = imageInput.files[0];
+      if (!file) return;
+      predictBtn.disabled = true;
+      resultDiv.innerHTML = 'Predicting...';
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Use the correct API endpoint for Flask backend
+      fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => { throw data; });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          resultDiv.innerHTML = `<span style="color:red;">${data.error}</span>`;
+        } else {
+          resultDiv.innerHTML = `<b>Prediction:</b> ${data.prediction}<br><b>Confidence:</b> ${(data.confidence*100).toFixed(2)}%`;
+        }
+        predictBtn.disabled = false;
+      })
+      .catch(err => {
+        // Handle both string and object errors
+        let errorMsg = err && err.error ? err.error : (err.message || 'Unknown error');
+        resultDiv.innerHTML = `<span style="color:red;">Error: ${errorMsg}</span>`;
+        predictBtn.disabled = false;
+      });
+    });
+  </script>
+</body>
+</html>

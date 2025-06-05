@@ -2,3 +2,4 @@ venv
 firebaseServiceAccountKey.json
 add-facts-script.py
 .env
+.vercel
